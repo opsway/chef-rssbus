@@ -1,0 +1,7 @@
+#!/bin/sh
+
+java -jar configure.jar
+
+export JETTY_HOME=<%= node['rssbus']['dir'] %>/RSSBusApps/webserver
+
+<%= node['rssbus']['dir'] %>/RSSBusApps/webserver/bin/jetty.sh $@ &
