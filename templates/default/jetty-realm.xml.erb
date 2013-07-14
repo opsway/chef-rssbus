@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!DOCTYPE Configure PUBLIC "-//Jetty//Configure//EN" "http://www.eclipse.org/jetty/configure.dtd">
+
+<Configure id="Server<%= @port %>" class="org.eclipse.jetty.server.Server">
+
+    <!-- =========================================================== -->
+    <!-- Configure Authentication Login Service                      -->
+    <!-- Realms may be configured for the entire server here, or     -->
+    <!-- they can be configured for a specific web app in a context  -->
+    <!-- configuration (see $(jetty.home)/contexts/test.xml for an   -->
+    <!-- example).                                                   -->
+    <!-- =========================================================== -->
+    <Call name="addBean">
+      <Arg>
+        <New class="org.eclipse.jetty.security.JDBCLoginService">
+          <Set name="name">RSSBusRealm</Set>
+          <Set name="config"><Property name="jetty.home" default="."/>/etc/RSSBusRealm.properties</Set>
+        </New>
+      </Arg>
+    </Call>
+
+</Configure>

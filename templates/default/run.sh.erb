@@ -1,7 +1,12 @@
 #!/bin/sh
 
+
+<% Array(node['rssbus']['listening_ports']).each do | port | %>
+export JETTY_HOME=<%= node['rssbus']['dir'] %>/RSSBusApps<%= port %>/webserver
+export JETTY_RUN=<%= node['rssbus']['dir'] %>/RSSBusApps<%= port %>/webserver
+export JETTY_PID=<%= node['rssbus']['dir'] %>/RSSBusApps<%= port %>/webserver/jetty.pid
+cd <%= node['rssbus']['dir'] %>/RSSBusApps<%= port %>
 java -jar configure.jar
+./webserver/bin/jetty.sh $@ &
 
-export JETTY_HOME=<%= node['rssbus']['dir'] %>/RSSBusApps/webserver
-
-<%= node['rssbus']['dir'] %>/RSSBusApps/webserver/bin/jetty.sh $@ &
+<% end %>

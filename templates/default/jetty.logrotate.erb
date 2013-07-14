@@ -1,4 +1,7 @@
-<%= node['rssbus']['dir'] %>/RSSBusApps/webserver/logs/start.log {
+<% Array(node['rssbus']['ports']).each do | port | %>
+  <%= node['rssbus']['dir'] %>/RSSBusApps<%= port %>/webserver/logs/start.log
+<% end %>
+{
         weekly
         rotate 4
         missingok
