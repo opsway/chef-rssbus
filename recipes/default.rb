@@ -31,13 +31,15 @@ template "/etc/init.d/jetty" do
 end
 
 temp_file = "#{node['rssbus']['dir']}/rssbus_src.tar.gz"
-#remote_file "#{temp_file}" do
-#    source "https://www.rssbus.com/download/GetFile.aspx?file=free/AAY3-U/setup.tar.gz&name=AS2%20Connector%20(Cross-Platform%20Unix/Linux/Java%20Setup)&go=true"
-#    mode "0644"
-#    action :create
-#    notifies :run, "execute[untar]", :immediately
-#    notifies :run, "template[/etc/init.d/jetty]", :immediately
-#end
+remote_file "#{temp_file}" do
+    source "https://www.rssbus.com/download/GetFile.aspx?file=free/AAY3-U/setup.tar.gz&name=AS2%20Connector%20(Cross-Platform%20Unix/Linux/Java%20Setup)&go=true"
+    mode "0644"
+    action :create
+    Array(node['rssbus']['listening_ports']).each do | port |
+      notifies :run, "execute[untar#{port}]", :immediately
+    end
+    notifies :run, "template[/etc/init.d/jetty]", :immediately
+end
 
 template "/etc/logrotate.d/jetty" do
   source "jetty.logrotate.erb"
