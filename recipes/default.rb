@@ -32,7 +32,7 @@ end
 
 temp_file = "#{node['rssbus']['dir']}/rssbus_src.tar.gz"
 remote_file "#{temp_file}" do
-    source "http://23.23.83.173/media/rssbus_src.tar.gz"
+    source node['rssbus']['source_file_address']
     mode "0644"
     action :create
     Array(node['rssbus']['listening_ports']).each do | port |

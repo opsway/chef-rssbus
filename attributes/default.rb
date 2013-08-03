@@ -5,3 +5,4 @@ default['rssbus']['listening_ports'] = ['8181','8182']
 default['rssbus']['service'] = 'jetty'
 default['rssbus']['pid_file'] = '/var/run/jetty.pid'
 default['rssbus']['admin_password'] = 'test'
+default['rssbus']['source_file_address'] = ''
