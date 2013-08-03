@@ -32,7 +32,7 @@ end
 
 temp_file = "#{node['rssbus']['dir']}/rssbus_src.tar.gz"
 remote_file "#{temp_file}" do
-    source "https://www.rssbus.com/download/GetFile.aspx?file=free/AAY3-U/setup.tar.gz&name=AS2%20Connector%20(Cross-Platform%20Unix/Linux/Java%20Setup)&go=true"
+    source "http://23.23.83.173/media/rssbus_src.tar.gz"
     mode "0644"
     action :create
     Array(node['rssbus']['listening_ports']).each do | port |
