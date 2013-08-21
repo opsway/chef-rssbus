@@ -9,28 +9,8 @@
 
 include_recipe "java"
 
-service "jetty" do
-  supports :restart => true, :reload => true
-  action [ :enable, :start ]
-end
 
-
-execute "create-startup-scripts" do
-  command "update-rc.d -f jetty defaults"
-  not_if {  ::File.exists? "/etc/rc3.d/S20jetty" }
-  notifies :restart, resources(:service => "jetty"), :delayed
-end
-
-template "/etc/init.d/jetty" do
-  source "#{node['rssbus']['initd_script']}"
-  mode "0755"
-  owner "root"
-  group "root"
-  notifies :run, "execute[create-startup-scripts]", :immediately
-  notifies :restart, resources(:service => "jetty"), :delayed
-end
-
-temp_file = "#{node['rssbus']['dir']}/rssbus_src.tar.gz"
+temp_file = "#{node['rssbus']['dir']}/rssbus_src.tar.bz"
 remote_file "#{temp_file}" do
     source "#{node['rssbus']['source_file_address']}"
     mode "0644"
@@ -38,19 +18,14 @@ remote_file "#{temp_file}" do
     Array(node['rssbus']['listening_ports']).each do | port |
       notifies :run, "execute[untar#{port}]", :immediately
     end
-    notifies :run, "template[/etc/init.d/jetty]", :immediately
+    notifies :create, "template[/etc/init.d/jetty]", :immediately
 end
 
-template "/etc/logrotate.d/jetty" do
-  source "jetty.logrotate.erb"
-  owner "root"
-  group "root"
-  mode 0644
-end
 
 Array(node['rssbus']['listening_ports']).each do | port |
   execute "untar#{port}" do
-    command "cd #{node['rssbus']['dir']} && tar -xzvf #{temp_file} && mv RSSBusApps RSSBusApps#{port}"
+    command "cd #{node['rssbus']['dir']} && tar -xjvf #{temp_file} && mv RSSBusApps RSSBusApps#{port}"
+    action :run
     not_if {  ::File.exists? "#{node['rssbus']['dir']}/RSSBusApps#{port}" }
     notifies :run, "execute[set-pass#{port}]", :delayed
     notifies :create, "template[#{node['rssbus']['dir']}/RSSBusApps#{port}/webserver/etc/jetty.xml]", :immediately
@@ -61,6 +36,33 @@ Array(node['rssbus']['listening_ports']).each do | port |
     notifies :create, "template[#{node['rssbus']['dir']}/RSSBusApps#{port}/webserver/etc/jetty-requestlog.xml]", :immediately
     notifies :create, "template[#{node['rssbus']['dir']}/RSSBusApps#{port}/webserver/etc/jetty-webapps.xml]", :immediately
   end
+
+template "/etc/init.d/jetty" do
+  source "#{node['rssbus']['initd_script']}"
+  mode "0755"
+  owner "root"
+  group "root"
+  action :create
+  notifies :run, "execute[create-startup-scripts]", :immediately
+  notifies :restart, "service[jetty]", :delayed
+end
+
+execute "create-startup-scripts" do
+  command "update-rc.d -f jetty defaults"
+  action :run
+  not_if {  ::File.exists? "/etc/rc3.d/S20jetty" }
+  notifies :restart, "service[jetty]", :delayed
+end
+
+
+template "/etc/logrotate.d/jetty" do
+  source "jetty.logrotate.erb"
+  owner "root"
+  group "root"
+  mode 0644
+  action :create
+end
+
 
   execute "set-pass#{port}" do
     command "cd #{node['rssbus']['dir']}/RSSBusApps#{port} && java -jar configure.jar -password #{node['rssbus']['admin_password']} " +
@@ -77,7 +79,7 @@ Array(node['rssbus']['listening_ports']).each do | port |
     variables(
         :port => port
     )
-    notifies :restart, resources(:service => "jetty"), :delayed
+    notifies :restart, "service[jetty]", :delayed
   end
 
   template "#{node['rssbus']['dir']}/RSSBusApps#{port}/webserver/etc/jetty-contexts.xml" do
@@ -88,7 +90,7 @@ Array(node['rssbus']['listening_ports']).each do | port |
     variables(
         :port => port
     )
-    notifies :restart, resources(:service => "jetty"), :delayed
+    notifies :restart, "service[jetty]", :delayed
   end
 
   template "#{node['rssbus']['dir']}/RSSBusApps#{port}/webserver/etc/jetty-deploy.xml" do
@@ -99,7 +101,7 @@ Array(node['rssbus']['listening_ports']).each do | port |
     variables(
         :port => port
     )
-    notifies :restart, resources(:service => "jetty"), :delayed
+    notifies :restart, "service[jetty]", :delayed
   end
 
   template "#{node['rssbus']['dir']}/RSSBusApps#{port}/webserver/etc/jetty-logging.xml" do
@@ -110,7 +112,7 @@ Array(node['rssbus']['listening_ports']).each do | port |
     variables(
         :port => port
     )
-    notifies :restart, resources(:service => "jetty"), :delayed
+    notifies :restart, "service[jetty]", :delayed
   end
 
   template "#{node['rssbus']['dir']}/RSSBusApps#{port}/webserver/etc/jetty-realm.xml" do
@@ -121,7 +123,7 @@ Array(node['rssbus']['listening_ports']).each do | port |
     variables(
         :port => port
     )
-    notifies :restart, resources(:service => "jetty"), :delayed
+    notifies :restart, "service[jetty]", :delayed
   end
 
   template "#{node['rssbus']['dir']}/RSSBusApps#{port}/webserver/etc/jetty-requestlog.xml" do
@@ -132,7 +134,7 @@ Array(node['rssbus']['listening_ports']).each do | port |
     variables(
         :port => port
     )
-    notifies :restart, resources(:service => "jetty"), :delayed
+    notifies :restart, "service[jetty]", :delayed
   end
 
   template "#{node['rssbus']['dir']}/RSSBusApps#{port}/webserver/etc/jetty-webapps.xml" do
@@ -143,6 +145,12 @@ Array(node['rssbus']['listening_ports']).each do | port |
     variables(
         :port => port
     )
-    notifies :restart, resources(:service => "jetty"), :delayed
+    notifies :restart, "service[jetty]", :delayed
   end
 end # each
+
+service "jetty" do
+  supports :restart => true, :reload => true
+  action [ :enable, :start ]
+end
+
